@@ -6,11 +6,14 @@
   "author": "Stars Manager",
   "main": "electron/main.cjs",
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev": "npm run build:packages && concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "npm run dev --workspace=client",
     "dev:server": "npm run dev --workspace=server",
+    "dev:extension": "npm run build:packages && npm run dev --workspace=extension",
     "dev:desktop": "npm run build && electron .",
-    "build": "npm run build --workspace=client && npm run build --workspace=server",
+    "build:packages": "npm run build --workspace=@stars-manager/shared && npm run build --workspace=@stars-manager/core && npm run build --workspace=@stars-manager/storage-node",
+    "build": "npm run build:packages && npm run build --workspace=client && npm run build --workspace=server",
+    "build:extension": "npm run build:packages && npm run build --workspace=extension",
     "start": "npm run start --workspace=server",
     "prepare:electron": "node scripts/prepare-electron.cjs",
     "pack": "npm run build && npm run prepare:electron && electron-builder --win --config electron-builder.yml",
@@ -18,7 +21,9 @@
   },
   "workspaces": [
     "client",
-    "server"
+    "server",
+    "extension",
+    "packages/*"
   ],
   "devDependencies": {
     "concurrently": "^9.1.2",

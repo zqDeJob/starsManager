@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'crypto';
-import * as starsData from '../storage/stars-data.js';
-import * as cache from '../storage/github-cache.js';
+import { starsData, githubCache } from '../services.js';
+import type { CachedRepo } from '@stars-manager/core';
 
 export const diyRouter = Router();
 
@@ -24,7 +24,7 @@ function toApiCategory(cat: { id: string; name: string; color: string; createdAt
 }
 
 function buildRepoWithMeta(
-  repo: ReturnType<typeof cache.listStars>[0],
+  repo: CachedRepo,
   diyEntry: { customDescription: string; tags: string[]; categoryIds: string[] } | null,
   categoryMap: Map<string, { name: string }>,
 ) {
@@ -40,11 +40,11 @@ function buildRepoWithMeta(
   };
 }
 
-diyRouter.get('/categories', (_req, res) => {
-  res.json(starsData.listCategories().map(toApiCategory));
+diyRouter.get('/categories', async (_req, res) => {
+  res.json((await starsData.listCategories()).map(toApiCategory));
 });
 
-diyRouter.post('/categories', (req, res) => {
+diyRouter.post('/categories', async (req, res) => {
   const { name, color } = req.body as { name?: string; color?: string };
   if (!name?.trim()) {
     res.status(400).json({ error: '分类名称不能为空' });
@@ -53,34 +53,34 @@ diyRouter.post('/categories', (req, res) => {
 
   const id = randomUUID();
   const now = new Date().toISOString();
-  const cat = starsData.createCategory(name.trim(), color ?? '#6366f1', id, now);
+  const cat = await starsData.createCategory(name.trim(), color ?? '#6366f1', id, now);
   res.status(201).json(toApiCategory({ ...cat, repoCount: 0 }));
 });
 
-diyRouter.patch('/categories/:id', (req, res) => {
+diyRouter.patch('/categories/:id', async (req, res) => {
   const { id } = req.params;
   const { name, color } = req.body as { name?: string; color?: string };
 
-  const updated = starsData.updateCategory(id, { name: name?.trim(), color });
+  const updated = await starsData.updateCategory(id, { name: name?.trim(), color });
   if (!updated) {
     res.status(404).json({ error: '分类不存在' });
     return;
   }
 
-  const count = starsData.listCategories().find(c => c.id === id)?.repoCount ?? 0;
+  const count = (await starsData.listCategories()).find(c => c.id === id)?.repoCount ?? 0;
   res.json(toApiCategory({ ...updated, repoCount: count }));
 });
 
-diyRouter.delete('/categories/:id', (req, res) => {
-  starsData.deleteCategory(req.params.id);
+diyRouter.delete('/categories/:id', async (req, res) => {
+  await starsData.deleteCategory(req.params.id);
   res.json({ ok: true });
 });
 
-diyRouter.get('/categories/:id/repos', (req, res) => {
+diyRouter.get('/categories/:id/repos', async (req, res) => {
   const { id } = req.params;
-  const categoryMap = starsData.getCategoryMap();
-  const allRepos = cache.listStars();
-  const diyEntries = starsData.getAllRepoEntries();
+  const categoryMap = await starsData.getCategoryMap();
+  const allRepos = await githubCache.listStars();
+  const diyEntries = await starsData.getAllRepoEntries();
 
   const result = allRepos
     .filter(repo => {
@@ -98,7 +98,7 @@ diyRouter.get('/categories/:id/repos', (req, res) => {
   res.json(result);
 });
 
-diyRouter.post('/categories/:id/repos', (req, res) => {
+diyRouter.post('/categories/:id/repos', async (req, res) => {
   const { id } = req.params;
   const { repoNodeId } = req.body as { repoNodeId?: string };
 
@@ -107,28 +107,28 @@ diyRouter.post('/categories/:id/repos', (req, res) => {
     return;
   }
 
-  const repo = cache.getRepoByNodeId(repoNodeId);
+  const repo = await githubCache.getRepoByNodeId(repoNodeId);
   if (!repo) {
     res.status(404).json({ error: '仓库不存在，请先同步 GitHub Stars' });
     return;
   }
 
   try {
-    starsData.addRepoToCategory(repo.full_name, repoNodeId, id);
+    await starsData.addRepoToCategory(repo.full_name, repoNodeId, id);
     res.json({ ok: true });
   } catch (e) {
     res.status(404).json({ error: (e as Error).message });
   }
 });
 
-diyRouter.delete('/categories/:categoryId/repos/:repoNodeId', (req, res) => {
+diyRouter.delete('/categories/:categoryId/repos/:repoNodeId', async (req, res) => {
   const { categoryId, repoNodeId } = req.params;
-  starsData.removeRepoFromCategoryByNodeId(repoNodeId, categoryId);
+  await starsData.removeRepoFromCategoryByNodeId(repoNodeId, categoryId);
   res.json({ ok: true });
 });
 
-diyRouter.get('/repo-meta/:repoNodeId', (req, res) => {
-  const found = starsData.findRepoByNodeId(req.params.repoNodeId);
+diyRouter.get('/repo-meta/:repoNodeId', async (req, res) => {
+  const found = await starsData.findRepoByNodeId(req.params.repoNodeId);
   if (!found) {
     res.json({ repoNodeId: req.params.repoNodeId, custom_description: '', tags: [] });
     return;
@@ -142,18 +142,18 @@ diyRouter.get('/repo-meta/:repoNodeId', (req, res) => {
   });
 });
 
-diyRouter.put('/repo-meta/:repoNodeId', (req, res) => {
+diyRouter.put('/repo-meta/:repoNodeId', async (req, res) => {
   const { repoNodeId } = req.params;
   const { custom_description, tags } = req.body as { custom_description?: string; tags?: string[] };
 
-  const repo = cache.getRepoByNodeId(repoNodeId);
+  const repo = await githubCache.getRepoByNodeId(repoNodeId);
   if (!repo) {
     res.status(404).json({ error: '仓库不存在，请先同步 GitHub Stars' });
     return;
   }
 
   const tagList = parseTags(tags);
-  const entry = starsData.updateRepoMeta(repo.full_name, repoNodeId, {
+  const entry = await starsData.updateRepoMeta(repo.full_name, repoNodeId, {
     customDescription: custom_description ?? '',
     tags: tagList,
   });
@@ -166,12 +166,12 @@ diyRouter.put('/repo-meta/:repoNodeId', (req, res) => {
   });
 });
 
-diyRouter.get('/repos-with-meta', (req, res) => {
+diyRouter.get('/repos-with-meta', async (req, res) => {
   const q = (req.query.q as string)?.trim().toLowerCase();
   const categoryId = req.query.categoryId as string | undefined;
-  const categoryMap = starsData.getCategoryMap();
-  const diyEntries = starsData.getAllRepoEntries();
-  let repos = cache.listStars();
+  const categoryMap = await starsData.getCategoryMap();
+  const diyEntries = await starsData.getAllRepoEntries();
+  let repos = await githubCache.listStars();
 
   if (categoryId) {
     repos = repos.filter(repo => {
@@ -199,13 +199,13 @@ diyRouter.get('/repos-with-meta', (req, res) => {
       r.full_name.toLowerCase().includes(q) ||
       (r.description ?? '').toLowerCase().includes(q) ||
       r.custom_description.toLowerCase().includes(q) ||
-      r.tags.some(t => t.toLowerCase().includes(q))
+      r.tags.some(t => t.toLowerCase().includes(q)),
     );
   }
 
   res.json(result);
 });
 
-diyRouter.get('/tags', (_req, res) => {
-  res.json(starsData.getAllTags());
+diyRouter.get('/tags', async (_req, res) => {
+  res.json(await starsData.getAllTags());
 });

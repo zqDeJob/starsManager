@@ -54,12 +54,25 @@ function main() {
   );
 
   console.log('正在安装服务端依赖（用于打包）...');
+  copyWorkspacePackages(appServerDir);
   execSync('npm install --omit=dev --no-audit --no-fund', {
     cwd: appServerDir,
     stdio: 'inherit',
   });
 
   console.log('Electron 打包资源已准备完成:', outDir);
+}
+
+function copyWorkspacePackages(appServerDir) {
+  const packages = ['shared', 'core', 'storage-node'];
+  for (const name of packages) {
+    const srcDir = path.join(root, 'packages', name);
+    const destDir = path.join(appServerDir, 'node_modules', '@stars-manager', name);
+    fs.mkdirSync(destDir, { recursive: true });
+    copyDir(path.join(srcDir, 'dist'), path.join(destDir, 'dist'));
+    const pkg = JSON.parse(fs.readFileSync(path.join(srcDir, 'package.json'), 'utf8'));
+    fs.writeFileSync(path.join(destDir, 'package.json'), JSON.stringify(pkg, null, 2));
+  }
 }
 
 main();

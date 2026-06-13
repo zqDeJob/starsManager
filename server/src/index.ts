@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { githubRouter } from './routes/github.js';
 import { diyRouter } from './routes/diy.js';
 import { dataRouter } from './routes/data.js';
-import { ensureDataDir } from './storage/io.js';
+import { ensureDataDir } from './services.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

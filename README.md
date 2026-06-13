@@ -81,6 +81,48 @@ Token 创建：https://github.com/settings/tokens （需 `read:user`）
 - **GitHub Star Lists** — GitHub 官方列表（只读）
 - **我的分类** — 本地 DIY，与 GitHub 列表完全独立
 
+## 浏览器扩展（Chrome / Edge）
+
+基于同一套 `@stars-manager/core` 业务逻辑，数据以 YAML 格式存于 `chrome.storage.local`，可通过导出/导入与桌面版 `stars-data.yaml` 互通。
+
+```bash
+npm install
+npm run build:extension
+```
+
+构建产物在 `extension/dist/`，加载方式：
+
+1. Chrome / Edge 打开 `chrome://extensions` 或 `edge://extensions`
+2. 开启「开发者模式」
+3. 「加载已解压的扩展程序」→ 选择 `extension/dist` 目录
+4. 点击扩展图标 → 在新标签页打开完整界面（Stars / Lists / 分类三 Tab）
+
+开发调试：
+
+```bash
+npm run dev:extension   # watch 构建，改代码后在扩展页点刷新
+```
+
+功能与 Web / 桌面版一致：同步 Stars、Lists、DIY 分类、编辑 Tag/笔记。设置里支持 YAML 导出/导入，以及可选连接本地 `npm run dev` 服务。
+
+---
+
+## 项目结构
+
+```
+packages/shared/        # 类型、GitHub API
+packages/core/          # YAML 业务逻辑（分类、缓存、Token）
+packages/storage-node/  # Node 磁盘读写（server / exe）
+client/                 # Web / 桌面 UI
+server/                 # Express API
+extension/              # Chrome / Edge 扩展
+electron/               # 桌面壳
+```
+
+Web 与 exe 的使用方式不变；`npm run dev` / `npm run pack` 行为与之前一致。
+
+---
+
 ## 技术栈
 
-React + Vite + Express + YAML 文件存储 + Electron（可选）
+React + Vite + Express + YAML 文件存储 + Electron（可选）+ Chrome Extension（Manifest V3）

@@ -1,22 +1,21 @@
 import { Router } from 'express';
-import { getSetting, setSetting, deleteSetting } from '../storage/local.js';
-import * as cache from '../storage/github-cache.js';
-import { fetchAllStars, fetchStarLists, verifyToken } from '../github.js';
-import type { CachedRepo, CachedStarList } from '../storage/github-cache.js';
+import { localSettings, githubCache } from '../services.js';
+import { fetchAllStars, fetchStarLists, verifyToken } from '@stars-manager/shared';
+import type { CachedRepo, CachedStarList } from '@stars-manager/core';
 
 export const githubRouter = Router();
 
-function requireToken(req: { headers: { authorization?: string } }): string {
+async function requireToken(req: { headers: { authorization?: string } }): Promise<string> {
   const header = req.headers.authorization;
   if (header?.startsWith('Bearer ')) return header.slice(7);
-  const stored = getSetting('github_token');
+  const stored = await localSettings.getSetting('github_token');
   if (stored) return stored;
   throw new Error('未配置 GitHub Token');
 }
 
 githubRouter.get('/user', async (req, res) => {
   try {
-    const token = requireToken(req);
+    const token = await requireToken(req);
     const user = await verifyToken(token);
     res.json(user);
   } catch (e) {
@@ -24,24 +23,24 @@ githubRouter.get('/user', async (req, res) => {
   }
 });
 
-githubRouter.post('/token', (req, res) => {
+githubRouter.post('/token', async (req, res) => {
   const { token } = req.body as { token?: string };
   if (!token?.trim()) {
     res.status(400).json({ error: 'Token 不能为空' });
     return;
   }
-  setSetting('github_token', token.trim());
+  await localSettings.setSetting('github_token', token.trim());
   res.json({ ok: true });
 });
 
-githubRouter.delete('/token', (_req, res) => {
-  deleteSetting('github_token');
+githubRouter.delete('/token', async (_req, res) => {
+  await localSettings.deleteSetting('github_token');
   res.json({ ok: true });
 });
 
 githubRouter.post('/sync', async (req, res) => {
   try {
-    const token = requireToken(req);
+    const token = await requireToken(req);
     const now = new Date().toISOString();
 
     const stars = await fetchAllStars(token);
@@ -73,7 +72,7 @@ githubRouter.post('/sync', async (req, res) => {
       repo_node_ids: list.repos.map(r => r.nodeId),
     }));
 
-    cache.replaceCache(cachedStars, cachedLists, now);
+    await githubCache.replaceCache(cachedStars, cachedLists, now);
 
     res.json({
       starsCount: stars.length,
@@ -85,24 +84,24 @@ githubRouter.post('/sync', async (req, res) => {
   }
 });
 
-githubRouter.get('/stars', (req, res) => {
+githubRouter.get('/stars', async (req, res) => {
   const q = (req.query.q as string)?.trim().toLowerCase();
-  let result = cache.listStars();
+  let result = await githubCache.listStars();
 
   if (q) {
     result = result.filter(r =>
       r.full_name.toLowerCase().includes(q) ||
       (r.description ?? '').toLowerCase().includes(q) ||
-      (r.language ?? '').toLowerCase().includes(q)
+      (r.language ?? '').toLowerCase().includes(q),
     );
   }
 
   res.json(result);
 });
 
-githubRouter.get('/star-lists', (_req, res) => {
-  const lists = cache.listStarLists();
-  const repoMap = cache.getRepoMap();
+githubRouter.get('/star-lists', async (_req, res) => {
+  const lists = await githubCache.listStarLists();
+  const repoMap = await githubCache.getRepoMap();
 
   res.json(lists.map(l => ({
     id: l.id,
@@ -126,10 +125,10 @@ githubRouter.get('/star-lists', (_req, res) => {
   })));
 });
 
-githubRouter.get('/sync-status', (_req, res) => {
-  const stats = cache.getSyncStats();
+githubRouter.get('/sync-status', async (_req, res) => {
+  const stats = await githubCache.getSyncStats();
   res.json({
-    hasToken: Boolean(getSetting('github_token')),
+    hasToken: Boolean(await localSettings.getSetting('github_token')),
     ...stats,
   });
 });

@@ -44,7 +44,7 @@ export async function fetchAllStars(token: string): Promise<GitHubRepo[]> {
   while (true) {
     const res = await githubFetch(
       `${GITHUB_API}/user/starred?per_page=100&page=${page}&sort=updated`,
-      token
+      token,
     );
 
     if (res.status === 401) throw new Error('GitHub Token 无效或已过期');
@@ -119,7 +119,7 @@ async function graphqlRequest<T>(token: string, query: string, variables: Record
   });
 
   if (!res.ok) throw new Error(`GraphQL 请求失败: ${res.status}`);
-  const json = await res.json() as { data?: T; errors?: { message: string }[] };
+  const json = (await res.json()) as { data?: T; errors?: { message: string }[] };
   if (json.errors?.length) throw new Error(json.errors.map(e => e.message).join('; '));
   return json.data as T;
 }
@@ -206,6 +206,6 @@ export async function fetchStarLists(token: string): Promise<StarList[]> {
 export async function verifyToken(token: string): Promise<{ login: string; avatar_url: string }> {
   const res = await githubFetch(`${GITHUB_API}/user`, token);
   if (!res.ok) throw new Error('Token 验证失败');
-  const user = await res.json() as { login: string; avatar_url: string };
+  const user = (await res.json()) as { login: string; avatar_url: string };
   return user;
 }

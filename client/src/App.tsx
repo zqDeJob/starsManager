@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Key, Moon, RefreshCw, Settings, Star, Sun, X } from 'lucide-react';
 import { useAppStore } from './store';
-import { api } from './api';
+import { api, isExtensionContext } from './api';
+import { getExtensionChrome } from './extension-bridge';
 import { applyTheme, type Theme } from './theme';
 import { GitHubStarsView } from './components/GitHubStarsView';
 import { GitHubListsView } from './components/GitHubListsView';
@@ -149,20 +150,87 @@ function SettingsModal({
   const { saveToken, clearToken, syncStatus } = useAppStore();
   const [tokenInput, setTokenInput] = useState('');
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
   const [dataInfo, setDataInfo] = useState<{ dataDir: string; syncHint: string } | null>(null);
+  const [useLocalServer, setUseLocalServer] = useState(false);
+  const isExtension = isExtensionContext();
 
   useEffect(() => {
     api.getDataInfo().then(setDataInfo).catch(() => {});
-  }, []);
+    if (isExtension) {
+      void getExtensionChrome()?.storage.local.get('useLocalServer').then(result => {
+        setUseLocalServer(Boolean(result.useLocalServer));
+      });
+    }
+  }, [isExtension]);
 
   const handleSave = async () => {
     setSaving(true);
+    setMessage('');
     try {
       await saveToken(tokenInput);
       setTokenInput('');
       onClose();
     } catch (e) {
       useAppStore.setState({ error: (e as Error).message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (!api.exportStarsData) return;
+    setSaving(true);
+    setMessage('');
+    try {
+      const yaml = await api.exportStarsData();
+      const blob = new Blob([yaml], { type: 'text/yaml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'stars-data.yaml';
+      a.click();
+      URL.revokeObjectURL(url);
+      setMessage('已导出 stars-data.yaml');
+    } catch (e) {
+      setMessage((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    if (!api.importStarsData) return;
+    setSaving(true);
+    setMessage('');
+    try {
+      await api.importStarsData(await file.text());
+      setMessage('已导入 stars-data.yaml');
+    } catch (e) {
+      setMessage((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLocalServerToggle = async (enabled: boolean) => {
+    const ext = getExtensionChrome();
+    if (!isExtension || !ext) return;
+    setSaving(true);
+    setMessage('');
+    try {
+      if (enabled) {
+        const granted = await ext.permissions.request({ origins: ['http://127.0.0.1:3001/*'] });
+        if (!granted) {
+          setMessage('需要授权访问本地服务 http://127.0.0.1:3001');
+          return;
+        }
+      }
+      await ext.storage.local.set({ useLocalServer: enabled });
+      setUseLocalServer(enabled);
+      setMessage(enabled ? '已切换为本地服务模式，请刷新页面' : '已切换为扩展内置存储，请刷新页面');
+    } catch (e) {
+      setMessage((e as Error).message);
     } finally {
       setSaving(false);
     }
@@ -220,8 +288,56 @@ function SettingsModal({
             <section className="text-xs text-muted leading-relaxed">
               <p className="font-medium text-text mb-1">数据同步</p>
               <p>{dataInfo.syncHint}</p>
+              {isExtension && (
+                <p className="mt-1 text-muted">存储位置：{dataInfo.dataDir}</p>
+              )}
             </section>
           )}
+
+          {isExtension && (
+            <section>
+              <label className="text-xs font-medium text-muted mb-2 block">连接本地服务（可选）</label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useLocalServer}
+                  onChange={e => void handleLocalServerToggle(e.target.checked)}
+                  disabled={saving}
+                />
+                使用 http://127.0.0.1:3001（需先运行 npm run dev）
+              </label>
+            </section>
+          )}
+
+          {isExtension && api.exportStarsData && (
+            <section>
+              <label className="text-xs font-medium text-muted mb-2 block">YAML 导入 / 导出</label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => void handleExport()}
+                  disabled={saving}
+                  className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface-2"
+                >
+                  导出 stars-data.yaml
+                </button>
+                <label className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface-2 cursor-pointer">
+                  导入 stars-data.yaml
+                  <input
+                    type="file"
+                    accept=".yaml,.yml"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) void handleImport(file);
+                    }}
+                  />
+                </label>
+              </div>
+            </section>
+          )}
+
+          {message && <p className="text-xs text-muted">{message}</p>}
         </div>
 
         <div className="flex gap-2 justify-end px-5 py-4 border-t border-border">
