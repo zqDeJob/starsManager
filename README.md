@@ -2,6 +2,26 @@
 
 精简版 GitHub Stars 管理工具。
 
+## 界面预览
+
+### GitHub Stars
+
+浏览并搜索已星标的仓库。
+
+![GitHub Stars 列表](docs/screenshots/stars.png)
+
+### GitHub Star Lists
+
+查看 GitHub 官方 Star Lists（只读）。
+
+![GitHub Star Lists](docs/screenshots/lists.png)
+
+### 我的分类
+
+本地 DIY 分类、描述与 Tag，与 GitHub Lists 完全独立。
+
+![我的分类](docs/screenshots/diy-categories.png)
+
 ## 数据存储（YAML，可 GitHub 同步）
 
 所有数据以 YAML 文件保存在 `data/` 目录：

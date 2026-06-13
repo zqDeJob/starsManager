@@ -2,6 +2,9 @@ appId: com.stars-manager.app
 productName: Stars Manager
 copyright: Copyright © 2026
 
+# 发布由 GitHub Actions（softprops/action-gh-release）处理，不在打包时自动上传
+publish: null
+
 directories:
   output: release
   buildResources: build
