@@ -137,10 +137,16 @@ Token 创建：https://github.com/settings/tokens （需 `read:user`）
 
 ## CI 自动打包
 
-Push 到 `main` 或打 `v*` 标签时，GitHub Actions 自动构建 Windows exe：
+打 `v*` 标签（如 `v1.0.1`）或手动 Run workflow 时，GitHub Actions 自动构建 Windows exe 并创建 **Release**：
 
-- **普通 push**：产物在 Actions → Artifacts（保留 30 天）
-- **打 tag（如 `v1.0.0`）**：额外创建 GitHub Release 并附上安装包
+```bash
+git tag v1.0.2
+git push origin v1.0.2
+```
+
+安装包出现在 [Releases](https://github.com/zqDeJob/starsManager/releases) 页面。普通 push 到 `main` **不会**触发打包（避免与发版 tag 重复构建）。
+
+也可在 Actions 页手动 **Run workflow** 构建（不上传 Release，仅 Artifacts）。
 
 ---
 
