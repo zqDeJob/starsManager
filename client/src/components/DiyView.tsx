@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Edit3, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowUp, Edit3, Plus, Trash2 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { RepoCard } from './RepoCard';
 import { SearchBar, EmptyState } from './ui/SearchBar';
@@ -17,6 +17,21 @@ export function DiyView() {
   const [newName, setNewName] = useState('');
   const [adding, setAdding] = useState(false);
   const [uncategorizedCount, setUncategorizedCount] = useState(0);
+  const [showBackTop, setShowBackTop] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const onScroll = () => setShowBackTop(el.scrollTop > 240);
+    el.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [syncStatus?.hasToken]);
+
+  useEffect(() => {
+    listRef.current?.scrollTo(0, 0);
+  }, [selectedCategoryId]);
 
   useEffect(() => {
     loadCategories();
@@ -67,19 +82,20 @@ export function DiyView() {
   }
 
   return (
-    <div className="flex gap-4">
-      <aside className="w-44 shrink-0">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-muted">分类</span>
-          <button
-            onClick={() => setAdding(true)}
-            className="p-0.5 rounded text-muted hover:text-accent transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
+    <>
+      <div className="flex gap-4 h-[calc(100dvh-5rem)] min-h-0">
+        <aside className="w-44 shrink-0 overflow-y-auto pt-1 pb-2">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-muted">分类</span>
+            <button
+              onClick={() => setAdding(true)}
+              className="p-0.5 rounded text-muted hover:text-accent transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
 
-        <div className="space-y-0.5">
+          <div className="space-y-0.5">
           <CatBtn active={!selectedCategoryId} onClick={() => setSelectedCategoryId(null)}>
             <span className="truncate flex-1 text-left">全部</span>
           </CatBtn>
@@ -125,25 +141,41 @@ export function DiyView() {
             </div>
           </div>
         )}
-      </aside>
+        </aside>
 
-      <div className="flex-1 min-w-0 space-y-3">
-        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="搜索仓库、描述、标签、GitHub Lists..." />
-        <div className="rounded-lg border border-border bg-surface divide-y divide-border">
-          {diyRepos.length === 0 ? (
-            <p className="text-center text-muted text-sm py-12">{emptyMessage}</p>
-          ) : (
-            diyRepos.map(repo => (
-              <DiyRepoRow
-                key={repo.node_id}
-                repo={repo}
-                githubLists={githubListsByRepo.get(repo.node_id) ?? []}
-              />
-            ))
-          )}
+        <div className="flex-1 min-w-0 flex flex-col min-h-0 gap-3">
+          <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="搜索仓库、描述、标签、GitHub Lists..." />
+          <div
+            ref={listRef}
+            className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border bg-surface divide-y divide-border"
+          >
+            {diyRepos.length === 0 ? (
+              <p className="text-center text-muted text-sm py-12">{emptyMessage}</p>
+            ) : (
+              diyRepos.map(repo => (
+                <DiyRepoRow
+                  key={repo.node_id}
+                  repo={repo}
+                  githubLists={githubListsByRepo.get(repo.node_id) ?? []}
+                />
+              ))
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {showBackTop && (
+        <button
+          type="button"
+          onClick={() => listRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-muted shadow-lg hover:text-accent hover:border-accent/40 transition-colors"
+          title="回到顶部"
+          aria-label="回到顶部"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </button>
+      )}
+    </>
   );
 }
 

@@ -18,6 +18,7 @@ const tabs: { id: Tab; label: string }[] = [
 export default function App() {
   const { tab, setTab, loadSyncStatus, syncStatus, user, syncing, sync, error } = useAppStore();
   const [showSettings, setShowSettings] = useState(false);
+  const [mountedTabs, setMountedTabs] = useState<Set<Tab>>(() => new Set([tab]));
   const [theme, setTheme] = useState<Theme>(() =>
     (document.documentElement.getAttribute('data-theme') as Theme) || 'light',
   );
@@ -25,6 +26,11 @@ export default function App() {
   useEffect(() => {
     loadSyncStatus();
   }, [loadSyncStatus]);
+
+  const switchTab = (next: Tab) => {
+    setMountedTabs(prev => new Set(prev).add(next));
+    setTab(next);
+  };
 
   const toggleTheme = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
@@ -45,7 +51,7 @@ export default function App() {
             {tabs.map(t => (
               <button
                 key={t.id}
-                onClick={() => setTab(t.id)}
+                onClick={() => switchTab(t.id)}
                 className={`px-3 py-1 text-sm rounded-md transition-colors ${
                   tab === t.id
                     ? 'text-accent font-medium bg-tag'
@@ -99,9 +105,21 @@ export default function App() {
       )}
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-4">
-        {tab === 'github-stars' && <GitHubStarsView />}
-        {tab === 'github-lists' && <GitHubListsView />}
-        {tab === 'diy' && <DiyView />}
+        {mountedTabs.has('github-stars') && (
+          <div className={tab === 'github-stars' ? undefined : 'hidden'}>
+            <GitHubStarsView />
+          </div>
+        )}
+        {mountedTabs.has('github-lists') && (
+          <div className={tab === 'github-lists' ? undefined : 'hidden'}>
+            <GitHubListsView />
+          </div>
+        )}
+        {mountedTabs.has('diy') && (
+          <div className={tab === 'diy' ? undefined : 'hidden'}>
+            <DiyView />
+          </div>
+        )}
       </main>
 
       {showSettings && (
