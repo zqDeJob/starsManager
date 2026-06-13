@@ -50,7 +50,7 @@ export function RepoCard({ repo, actions, showMeta, githubLists }: RepoCardProps
           )
         )}
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-muted">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2 text-xs text-muted">
           {repo.language && (
             <span className="flex items-center gap-1">
               <span
@@ -64,15 +64,31 @@ export function RepoCard({ repo, actions, showMeta, githubLists }: RepoCardProps
             <Star className="w-3 h-3" />
             {repo.stargazers_count.toLocaleString()}
           </span>
-          {meta?.tags?.map((t: string) => (
-            <span key={t} className="px-1.5 py-px rounded bg-tag text-tag-text">{t}</span>
-          ))}
           {meta?.diy_categories?.map((c: string) => (
-            <span key={c} className="px-1.5 py-px rounded border border-border">{c}</span>
+            <span
+              key={`diy-${c}`}
+              className="px-1.5 py-0.5 rounded-md border diy-category-tag font-medium"
+              title="我的分类"
+            >
+              {c}
+            </span>
           ))}
           {githubLists?.map(name => (
-            <span key={name} className="px-1.5 py-px rounded bg-surface-2 border border-dashed border-border text-muted">
+            <span
+              key={`gh-${name}`}
+              className="px-1.5 py-0.5 rounded-md border border-dashed github-list-tag"
+              title="GitHub List"
+            >
               {name}
+            </span>
+          ))}
+          {meta?.tags?.map((t: string) => (
+            <span
+              key={`tag-${t}`}
+              className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30"
+              title="自定义 Tag"
+            >
+              {t}
             </span>
           ))}
         </div>

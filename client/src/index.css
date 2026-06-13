@@ -42,6 +42,10 @@
   --c-tag-text: #c7d2fe;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   @apply bg-bg text-text antialiased;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -54,4 +58,16 @@ body {
 
 input, textarea, button {
   font: inherit;
+}
+
+.diy-category-tag {
+  color: #409EFF;
+  background-color: rgb(64 158 255 / 0.12);
+  border-color: rgb(64 158 255 / 0.45);
+}
+
+.github-list-tag {
+  color: #F56C6C;
+  background-color: rgb(245 108 108 / 0.12);
+  border-color: rgb(245 108 108 / 0.55);
 }

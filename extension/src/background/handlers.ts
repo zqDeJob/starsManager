@@ -1,4 +1,5 @@
 import type { CachedRepo, CachedStarList } from '@stars-manager/core';
+import { buildGitHubListsByRepoNodeId, repoMatchesSearchQuery } from '@stars-manager/core';
 import { fetchAllStars, fetchStarLists, verifyToken } from '@stars-manager/shared';
 import { githubCache, localSettings, starsData } from './services.js';
 
@@ -33,6 +34,7 @@ function parseTags(raw: unknown): string[] {
 
 async function buildReposWithMeta(q?: string, categoryId?: string, uncategorized?: boolean) {
   const categoryMap = await starsData.getCategoryMap();
+  const githubListsByRepo = buildGitHubListsByRepoNodeId(await githubCache.listStarLists());
   const diyEntries = await starsData.getAllRepoEntries();
   let repos = await githubCache.listStars();
 
@@ -62,17 +64,12 @@ async function buildReposWithMeta(q?: string, categoryId?: string, uncategorized
       custom_description: entry?.customDescription ?? '',
       tags: entry?.tags ?? [],
       diy_categories: diyCategoryNames,
+      github_lists: githubListsByRepo.get(repo.node_id) ?? [],
     };
   });
 
-  const query = q?.trim().toLowerCase();
-  if (query) {
-    result = result.filter(r =>
-      r.full_name.toLowerCase().includes(query) ||
-      (r.description ?? '').toLowerCase().includes(query) ||
-      r.custom_description.toLowerCase().includes(query) ||
-      r.tags.some(t => t.toLowerCase().includes(query)),
-    );
+  if (q?.trim()) {
+    result = result.filter(r => repoMatchesSearchQuery(r, q));
   }
 
   return result;

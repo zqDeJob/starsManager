@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { randomUUID } from 'crypto';
 import { starsData, githubCache } from '../services.js';
 import type { CachedRepo } from '@stars-manager/core';
+import { buildGitHubListsByRepoNodeId, repoMatchesSearchQuery } from '@stars-manager/core';
 
 export const diyRouter = Router();
 
@@ -27,6 +28,7 @@ function buildRepoWithMeta(
   repo: CachedRepo,
   diyEntry: { customDescription: string; tags: string[]; categoryIds: string[] } | null,
   categoryMap: Map<string, { name: string }>,
+  githubListsByRepo: Map<string, string[]>,
 ) {
   const diyCategoryNames = (diyEntry?.categoryIds ?? [])
     .map(id => categoryMap.get(id)?.name)
@@ -37,6 +39,7 @@ function buildRepoWithMeta(
     custom_description: diyEntry?.customDescription ?? '',
     tags: diyEntry?.tags ?? [],
     diy_categories: diyCategoryNames,
+    github_lists: githubListsByRepo.get(repo.node_id) ?? [],
   };
 }
 
@@ -79,6 +82,7 @@ diyRouter.delete('/categories/:id', async (req, res) => {
 diyRouter.get('/categories/:id/repos', async (req, res) => {
   const { id } = req.params;
   const categoryMap = await starsData.getCategoryMap();
+  const githubListsByRepo = buildGitHubListsByRepoNodeId(await githubCache.listStarLists());
   const allRepos = await githubCache.listStars();
   const diyEntries = await starsData.getAllRepoEntries();
 
@@ -92,7 +96,7 @@ diyRouter.get('/categories/:id/repos', async (req, res) => {
       const entry = diyEntries[repo.full_name]
         ?? Object.entries(diyEntries).find(([, e]) => e.nodeId === repo.node_id)?.[1]
         ?? null;
-      return buildRepoWithMeta(repo, entry, categoryMap);
+      return buildRepoWithMeta(repo, entry, categoryMap, githubListsByRepo);
     });
 
   res.json(result);
@@ -167,9 +171,10 @@ diyRouter.put('/repo-meta/:repoNodeId', async (req, res) => {
 });
 
 diyRouter.get('/repos-with-meta', async (req, res) => {
-  const q = (req.query.q as string)?.trim().toLowerCase();
+  const q = (req.query.q as string)?.trim();
   const categoryId = req.query.categoryId as string | undefined;
   const categoryMap = await starsData.getCategoryMap();
+  const githubListsByRepo = buildGitHubListsByRepoNodeId(await githubCache.listStarLists());
   const diyEntries = await starsData.getAllRepoEntries();
   let repos = await githubCache.listStars();
 
@@ -191,16 +196,11 @@ diyRouter.get('/repos-with-meta', async (req, res) => {
     const entry = diyEntries[repo.full_name]
       ?? Object.entries(diyEntries).find(([, e]) => e.nodeId === repo.node_id)?.[1]
       ?? null;
-    return buildRepoWithMeta(repo, entry, categoryMap);
+    return buildRepoWithMeta(repo, entry, categoryMap, githubListsByRepo);
   });
 
   if (q) {
-    result = result.filter(r =>
-      r.full_name.toLowerCase().includes(q) ||
-      (r.description ?? '').toLowerCase().includes(q) ||
-      r.custom_description.toLowerCase().includes(q) ||
-      r.tags.some(t => t.toLowerCase().includes(q)),
-    );
+    result = result.filter(r => repoMatchesSearchQuery(r, q));
   }
 
   res.json(result);

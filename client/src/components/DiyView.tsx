@@ -81,27 +81,27 @@ export function DiyView() {
 
         <div className="space-y-0.5">
           <CatBtn active={!selectedCategoryId} onClick={() => setSelectedCategoryId(null)}>
-            全部
+            <span className="truncate flex-1 text-left">全部</span>
           </CatBtn>
           <CatBtn
             active={selectedCategoryId === UNCATEGORIZED_ID}
             onClick={() => setSelectedCategoryId(UNCATEGORIZED_ID)}
           >
-            <span className="truncate flex-1">未分类</span>
-            <span className="text-muted text-xs ml-1">{uncategorizedCount}</span>
+            <span className="truncate flex-1 text-left">未分类</span>
+            <span className="text-muted text-xs shrink-0 tabular-nums">{uncategorizedCount}</span>
           </CatBtn>
           {categories.map(cat => (
-            <div key={cat.id} className="group flex items-center">
+            <div key={cat.id} className="group relative">
               <CatBtn
                 active={selectedCategoryId === cat.id}
                 onClick={() => setSelectedCategoryId(cat.id)}
               >
-                <span className="truncate flex-1">{cat.name}</span>
-                <span className="text-muted text-xs ml-1">{cat.repoCount}</span>
+                <span className="truncate flex-1 text-left pr-5">{cat.name}</span>
+                <span className="text-muted text-xs shrink-0 tabular-nums">{cat.repoCount}</span>
               </CatBtn>
               <button
                 onClick={() => deleteCategory(cat.id)}
-                className="p-0.5 opacity-0 group-hover:opacity-100 text-muted hover:text-red-500 transition-all"
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 opacity-0 group-hover:opacity-100 text-muted hover:text-red-500 transition-all"
               >
                 <Trash2 className="w-3 h-3" />
               </button>
@@ -128,7 +128,7 @@ export function DiyView() {
       </aside>
 
       <div className="flex-1 min-w-0 space-y-3">
-        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="搜索仓库、描述、标签..." />
+        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="搜索仓库、描述、标签、GitHub Lists..." />
         <div className="rounded-lg border border-border bg-surface divide-y divide-border">
           {diyRepos.length === 0 ? (
             <p className="text-center text-muted text-sm py-12">{emptyMessage}</p>
@@ -159,7 +159,7 @@ function CatBtn({
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-xs transition-colors ${
+      className={`w-full flex items-center justify-start gap-1.5 px-2 py-1.5 rounded-md text-xs text-left transition-colors ${
         active ? 'bg-tag text-accent font-medium' : 'text-muted hover:bg-surface-2 hover:text-text'
       }`}
     >

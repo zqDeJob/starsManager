@@ -43,6 +43,7 @@ export interface RepoWithMeta extends Repo {
   custom_description: string;
   tags: string[];
   diy_categories: string[];
+  github_lists?: string[];
 }
 
 export interface SyncStatus {
