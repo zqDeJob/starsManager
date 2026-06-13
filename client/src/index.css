@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-border: var(--c-border);
+  --color-text: var(--c-text);
+  --color-muted: var(--c-muted);
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-tag: var(--c-tag);
+  --color-tag-text: var(--c-tag-text);
+}
+
+/* 浅色 */
+:root,
+[data-theme="light"] {
+  --c-bg: #f4f4f5;
+  --c-surface: #ffffff;
+  --c-surface-2: #fafafa;
+  --c-border: #e4e4e7;
+  --c-text: #18181b;
+  --c-muted: #71717a;
+  --c-accent: #4f46e5;
+  --c-accent-hover: #4338ca;
+  --c-tag: #eef2ff;
+  --c-tag-text: #4338ca;
+}
+
+/* 深色 */
+[data-theme="dark"] {
+  --c-bg: #09090b;
+  --c-surface: #18181b;
+  --c-surface-2: #27272a;
+  --c-border: #3f3f46;
+  --c-text: #fafafa;
+  --c-muted: #a1a1aa;
+  --c-accent: #818cf8;
+  --c-accent-hover: #a5b4fc;
+  --c-tag: #312e81;
+  --c-tag-text: #c7d2fe;
+}
+
+body {
+  @apply bg-bg text-text antialiased;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-border) transparent;
+}
+
+input, textarea, button {
+  font: inherit;
+}

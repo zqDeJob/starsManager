@@ -1,0 +1,18 @@
+version: 1
+updatedAt: "2026-01-01T00:00:00.000Z"
+
+# DIY 分类（可提交 GitHub 同步）
+categories: []
+
+# 仓库自定义信息，key 为 owner/repo
+# 示例:
+# repos:
+#   facebook/react:
+#     nodeId: "MDEwOlJlcG9zaXRvcnk..."
+#     customDescription: "React 核心库，值得反复阅读"
+#     tags:
+#       - 前端
+#       - 框架
+#     categoryIds: []
+#     updatedAt: "2026-01-01T00:00:00.000Z"
+repos: {}

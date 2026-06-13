@@ -1,0 +1,37 @@
+appId: com.stars-manager.app
+productName: Stars Manager
+copyright: Copyright © 2026
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - electron/**/*
+  - package.json
+
+extraResources:
+  - from: electron-resources/app-server
+    to: app-server
+  - from: electron-resources/client-dist
+    to: client-dist
+
+extraMetadata:
+  main: electron/main.cjs
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: StarsManager-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Stars Manager
+  installerLanguages:
+    - zh_CN
+    - en_US

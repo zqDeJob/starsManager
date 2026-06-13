@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+release/
+electron-resources/
+
+# Vite / TypeScript
+*.tsbuildinfo
+.vite/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Local runtime data (do not commit)
+data/local.yaml
+data/github-cache.yaml
+server/data/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test / coverage
+coverage/
+
+# Legacy SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Cursor / agent (local only)
+agent-tools/
+terminals/
