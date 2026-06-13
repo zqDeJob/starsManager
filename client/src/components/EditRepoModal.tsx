@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, Search, Tag, X } from 'lucide-react';
 import type { DiyCategory, RepoWithMeta } from '../types';
 
@@ -17,6 +17,16 @@ export function EditRepoModal({ repo, categories, onClose, onSave }: EditRepoMod
   );
   const [catQuery, setCatQuery] = useState('');
   const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => setOpen(true));
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
 
   const filteredCats = categories.filter(c =>
     c.name.toLowerCase().includes(catQuery.trim().toLowerCase()),
@@ -28,21 +38,33 @@ export function EditRepoModal({ repo, categories, onClose, onSave }: EditRepoMod
     );
   };
 
+  const handleClose = () => {
+    setOpen(false);
+    window.setTimeout(onClose, 200);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
       const tags = tagInput.split(/[,，]/).map(t => t.trim()).filter(Boolean);
       await onSave({ desc, tags, categoryIds: selectedCatIds });
-      onClose();
+      handleClose();
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div
-        className="bg-surface border border-border rounded-xl w-full max-w-md shadow-xl flex flex-col max-h-[85vh]"
+    <div
+      className={`fixed inset-0 z-50 flex justify-end bg-black/40 transition-opacity duration-200 ${
+        open ? 'opacity-100' : 'opacity-0'
+      }`}
+      onClick={handleClose}
+    >
+      <aside
+        className={`h-full w-full max-w-md bg-surface border-l border-border shadow-2xl flex flex-col transition-transform duration-200 ease-out ${
+          open ? 'translate-x-0' : 'translate-x-full'
+        }`}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
@@ -50,22 +72,22 @@ export function EditRepoModal({ repo, categories, onClose, onSave }: EditRepoMod
             <h2 className="font-semibold text-sm truncate">{repo.full_name}</h2>
             <p className="text-xs text-muted mt-0.5">编辑仓库</p>
           </div>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-surface-2 text-muted shrink-0">
+          <button onClick={handleClose} className="p-1 rounded-md hover:bg-surface-2 text-muted shrink-0">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="px-5 py-4 space-y-4 overflow-y-auto flex-1">
+        <div className="flex-1 min-h-0 flex flex-col px-5 py-4 gap-4 overflow-hidden">
           {repo.description && (
-            <section>
+            <section className="shrink-0">
               <label className="text-xs text-muted mb-1 block">仓库描述</label>
-              <p className="text-xs text-muted px-3 py-2 rounded-md bg-bg border border-border leading-relaxed">
+              <p className="text-xs text-muted px-3 py-2 rounded-md bg-bg border border-border leading-relaxed line-clamp-3">
                 {repo.description}
               </p>
             </section>
           )}
 
-          <section>
+          <section className="shrink-0">
             <label className="text-xs text-muted mb-1 block">我的笔记</label>
             <textarea
               value={desc}
@@ -76,7 +98,7 @@ export function EditRepoModal({ repo, categories, onClose, onSave }: EditRepoMod
             />
           </section>
 
-          <section>
+          <section className="shrink-0">
             <label className="text-xs text-muted mb-1 flex items-center gap-1">
               <Tag className="w-3 h-3" /> 标签
             </label>
@@ -89,9 +111,9 @@ export function EditRepoModal({ repo, categories, onClose, onSave }: EditRepoMod
           </section>
 
           {categories.length > 0 && (
-            <section>
+            <section className="flex flex-col flex-1 min-h-0">
               <label className="text-xs text-muted mb-1 block">分类</label>
-              <div className="relative mb-2">
+              <div className="relative mb-2 shrink-0">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
                 <input
                   value={catQuery}
@@ -100,7 +122,7 @@ export function EditRepoModal({ repo, categories, onClose, onSave }: EditRepoMod
                   className="w-full pl-8 pr-3 py-2 rounded-md bg-bg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
                 />
               </div>
-              <ul className="rounded-md border border-border divide-y divide-border max-h-36 overflow-y-auto">
+              <ul className="flex-1 min-h-0 overflow-y-auto rounded-md border border-border divide-y divide-border">
                 {filteredCats.length === 0 ? (
                   <li className="px-3 py-3 text-xs text-muted text-center">无匹配分类</li>
                 ) : (
@@ -111,7 +133,7 @@ export function EditRepoModal({ repo, categories, onClose, onSave }: EditRepoMod
                         <button
                           type="button"
                           onClick={() => toggleCat(cat.id)}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-surface-2 transition-colors"
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-surface-2 transition-colors"
                         >
                           <span
                             className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
@@ -121,7 +143,7 @@ export function EditRepoModal({ repo, categories, onClose, onSave }: EditRepoMod
                             {checked && <Check className="w-3 h-3 text-white" />}
                           </span>
                           <span className="truncate flex-1">{cat.name}</span>
-                          <span className="text-xs text-muted">{cat.repoCount}</span>
+                          <span className="text-xs text-muted tabular-nums">{cat.repoCount}</span>
                         </button>
                       </li>
                     );
@@ -132,22 +154,22 @@ export function EditRepoModal({ repo, categories, onClose, onSave }: EditRepoMod
           )}
         </div>
 
-        <div className="flex gap-2 justify-end px-5 py-4 border-t border-border shrink-0">
+        <div className="flex gap-2 justify-end px-5 py-4 border-t border-border shrink-0 bg-surface">
           <button
-            onClick={onClose}
-            className="px-4 py-1.5 text-sm text-muted hover:text-text rounded-md"
+            onClick={handleClose}
+            className="flex-1 max-w-[120px] py-2 text-sm text-muted hover:text-text rounded-md border border-border hover:bg-surface-2"
           >
             取消
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-1.5 rounded-md bg-accent text-white text-sm font-medium hover:bg-accent-hover disabled:opacity-40"
+            className="flex-1 max-w-[120px] py-2 rounded-md bg-accent text-white text-sm font-medium hover:bg-accent-hover disabled:opacity-40"
           >
             保存
           </button>
         </div>
-      </div>
+      </aside>
     </div>
   );
 }
