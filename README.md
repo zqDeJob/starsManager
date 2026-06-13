@@ -1,6 +1,6 @@
-# Stars Manager For Me
+# Stars Manager
 
-精简版 GitHub Stars 管理工具。
+精简版 GitHub Stars 管理工具。支持 **Web**、**Windows 桌面版**、**Chrome / Edge 扩展** 三种使用方式，核心功能一致。
 
 ## 界面预览
 
@@ -22,28 +22,23 @@
 
 ![我的分类](docs/screenshots/diy-categories.png)
 
-## 数据存储（YAML，可 GitHub 同步）
+---
 
-所有数据以 YAML 文件保存在 `data/` 目录：
+## 功能
 
-| 文件 | 说明 | 是否提交 GitHub |
-|------|------|----------------|
-| `stars-data.yaml` | DIY 分类、描述、Tag | ✅ **提交，用于同步** |
-| `github-cache.yaml` | Stars / Star Lists 缓存 | ❌ 可重新同步，不必提交 |
-| `local.yaml` | GitHub Token | ❌ **切勿提交** |
-
-### 多设备同步方法
-
-1. 把 `data/stars-data.yaml` 放进一个 GitHub 仓库（可以是私有仓库）
-2. 在每台电脑上 clone 同一仓库，或只同步这个文件
-3. 修改分类/描述/Tag 后，`git commit && git push`
-4. 另一台电脑 `git pull` 后重启应用即可
-
-> Stars 列表本身从 GitHub API 重新拉取即可，只需同步 `stars-data.yaml`。
+| 功能 | 说明 |
+|------|------|
+| **GitHub Stars** | 同步并浏览星标仓库 |
+| **GitHub Star Lists** | GitHub 官方列表（只读） |
+| **我的分类** | 本地 DIY 分类、描述、Tag，与 GitHub Lists 独立 |
+| **深色 / 浅色主题** | 自动记忆偏好 |
+| **多设备同步** | 通过 `stars-data.yaml` 在 Web / exe / 扩展间互通 |
 
 ---
 
-## 本地使用
+## 快速开始
+
+### 1. Web 版（开发 / 浏览器）
 
 ```bash
 npm install
@@ -52,77 +47,118 @@ npm run dev
 
 浏览器打开 http://localhost:5173
 
-## 桌面版 exe
+### 2. Windows 桌面版（exe）
 
 ```bash
 npm install
 npm run pack
 ```
 
-安装包在 `release/StarsManager-Setup-1.0.0.exe`
+安装包：`release/StarsManager-Setup-1.0.0.exe`
 
-桌面版数据目录：`C:\Users\你\AppData\Roaming\stars-manager-for-me\data\`
+数据目录：`C:\Users\你\AppData\Roaming\stars-manager-for-me\data\`
 
-可将该目录下的 `stars-data.yaml` 同样纳入 Git 管理实现同步。
-
----
-
-## 使用步骤
-
-1. 设置 → 填入 GitHub Token（存于 `local.yaml`）
-2. 点 **同步** 拉取 Stars 和 Star Lists
-3. **我的分类** 里管理 DIY 分类、描述、Tag（写入 `stars-data.yaml`）
-
-Token 创建：https://github.com/settings/tokens （需 `read:user`）
-
-## 功能
-
-- **GitHub Stars** — 同步并浏览星标仓库
-- **GitHub Star Lists** — GitHub 官方列表（只读）
-- **我的分类** — 本地 DIY，与 GitHub 列表完全独立
-
-## 浏览器扩展（Chrome / Edge）
-
-基于同一套 `@stars-manager/core` 业务逻辑，数据以 YAML 格式存于 `chrome.storage.local`，可通过导出/导入与桌面版 `stars-data.yaml` 互通。
+### 3. 浏览器扩展（Chrome / Edge）
 
 ```bash
 npm install
 npm run build:extension
 ```
 
-构建产物在 `extension/dist/`，加载方式：
+加载步骤：
 
-1. Chrome / Edge 打开 `chrome://extensions` 或 `edge://extensions`
+1. 打开 `chrome://extensions` 或 `edge://extensions`
 2. 开启「开发者模式」
-3. 「加载已解压的扩展程序」→ 选择 `extension/dist` 目录
-4. 点击扩展图标 → 在新标签页打开完整界面（Stars / Lists / 分类三 Tab）
+3. 「加载已解压的扩展程序」→ 选择 `extension/dist`
+4. 点击扩展图标 → 新标签页打开完整界面
 
-开发调试：
+扩展开发（watch 模式）：
 
 ```bash
-npm run dev:extension   # watch 构建，改代码后在扩展页点刷新
+npm run dev:extension
 ```
 
-功能与 Web / 桌面版一致：同步 Stars、Lists、DIY 分类、编辑 Tag/笔记。设置里支持 YAML 导出/导入，以及可选连接本地 `npm run dev` 服务。
+扩展与 Web / 桌面版功能一致。设置中可 **导出 / 导入 `stars-data.yaml`**，或勾选 **连接本地服务**（`http://127.0.0.1:3001`，需先 `npm run dev`）共用磁盘数据。
+
+---
+
+## 使用步骤
+
+1. **设置** → 填入 GitHub Token
+2. 点击 **同步**，拉取 Stars 和 Star Lists
+3. 在 **分类** Tab 管理 DIY 分类、描述、Tag
+
+Token 创建：https://github.com/settings/tokens （需 `read:user`）
+
+---
+
+## 数据存储（YAML）
+
+所有 DIY 数据以 YAML 保存，**Stars 列表本身可从 GitHub 重新拉取，只需同步 DIY 部分**。
+
+### Web / 桌面版
+
+运行时数据在 `server/data/`（桌面版为 AppData 对应目录）：
+
+| 文件 | 说明 | 是否提交 Git |
+|------|------|-------------|
+| `stars-data.yaml` | DIY 分类、描述、Tag | ✅ 可提交，用于同步 |
+| `github-cache.yaml` | Stars / Lists 缓存 | ❌ 可重新同步 |
+| `local.yaml` | GitHub Token | ❌ **切勿提交** |
+
+根目录 `data/` 仅含示例文件；实际运行读写 `server/data/`。
+
+### 浏览器扩展
+
+数据以 YAML 文本存于 `chrome.storage.local`（非磁盘文件）。与桌面版互通方式：
+
+- 扩展 **导出** `stars-data.yaml` → 复制到桌面版数据目录
+- 或桌面版导出 → 扩展 **导入**
+
+### 多设备同步（Git）
+
+1. 将 `stars-data.yaml` 放入 Git 仓库（可私有）
+2. 各设备保持该文件一致（`git pull` / `git push`）
+3. 修改分类 / Tag 后提交，另一台设备拉取后重启应用
+
+---
+
+## 常用命令
+
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | Web 开发（client + server） |
+| `npm run pack` | 构建并打包 Windows exe |
+| `npm run build` | 构建 client + server + packages |
+| `npm run build:extension` | 构建浏览器扩展 |
+| `npm run dev:extension` | 扩展 watch 构建 |
+
+---
+
+## CI 自动打包
+
+Push 到 `main` 或打 `v*` 标签时，GitHub Actions 自动构建 Windows exe：
+
+- **普通 push**：产物在 Actions → Artifacts（保留 30 天）
+- **打 tag（如 `v1.0.0`）**：额外创建 GitHub Release 并附上安装包
 
 ---
 
 ## 项目结构
 
 ```
-packages/shared/        # 类型、GitHub API
-packages/core/          # YAML 业务逻辑（分类、缓存、Token）
-packages/storage-node/  # Node 磁盘读写（server / exe）
-client/                 # Web / 桌面 UI
-server/                 # Express API
-extension/              # Chrome / Edge 扩展
-electron/               # 桌面壳
+packages/
+  shared/          # 类型、GitHub API
+  core/            # YAML 业务逻辑（分类、缓存、Token）
+  storage-node/    # Node 磁盘读写
+client/            # React UI（Web / 桌面 / 扩展共用）
+server/            # Express API
+extension/         # Chrome / Edge 扩展（Manifest V3）
+electron/          # 桌面壳
 ```
-
-Web 与 exe 的使用方式不变；`npm run dev` / `npm run pack` 行为与之前一致。
 
 ---
 
 ## 技术栈
 
-React + Vite + Express + YAML 文件存储 + Electron（可选）+ Chrome Extension（Manifest V3）
+React 19 · Vite · Tailwind CSS 4 · Zustand · Express · YAML · Electron · Chrome Extension MV3
