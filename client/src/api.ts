@@ -54,6 +54,15 @@ export function createHttpApi(baseUrl = ''): StarsApi {
     return data as T;
   }
 
+  async function requestText(url: string): Promise<string> {
+    const res = await fetch(`${baseUrl}${url}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error((data as { error?: string }).error ?? `请求失败: ${res.status}`);
+    }
+    return res.text();
+  }
+
   return {
     saveToken: token => request('/api/github/token', { method: 'POST', body: JSON.stringify({ token }) }),
     clearToken: () => request('/api/github/token', { method: 'DELETE' }),
@@ -87,6 +96,12 @@ export function createHttpApi(baseUrl = ''): StarsApi {
       request(`/api/diy/repo-meta/${repoNodeId}`, { method: 'PUT', body: JSON.stringify(data) }),
     getTags: () => request('/api/diy/tags'),
     getDataInfo: () => request('/api/data/info'),
+    exportStarsData: () => requestText('/api/data/stars-data/export'),
+    importStarsData: content =>
+      request('/api/data/stars-data/import', {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      }),
   };
 }
 

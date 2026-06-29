@@ -165,7 +165,7 @@ function SettingsModal({
   onThemeChange: (t: Theme) => void;
   onClose: () => void;
 }) {
-  const { saveToken, clearToken, syncStatus } = useAppStore();
+  const { saveToken, clearToken, syncStatus, loadCategories, loadDiyRepos } = useAppStore();
   const [tokenInput, setTokenInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -223,7 +223,8 @@ function SettingsModal({
     setMessage('');
     try {
       await api.importStarsData(await file.text());
-      setMessage('已导入 stars-data.yaml');
+      await Promise.all([loadCategories(), loadDiyRepos()]);
+      setMessage('已导入 stars-data.yaml，分类数据已刷新');
     } catch (e) {
       setMessage((e as Error).message);
     } finally {
@@ -343,11 +344,12 @@ function SettingsModal({
                   导入 stars-data.yaml
                   <input
                     type="file"
-                    accept=".yaml,.yml"
+                    accept=".yaml,.yml,text/yaml,text/x-yaml,application/x-yaml"
                     className="hidden"
                     onChange={e => {
                       const file = e.target.files?.[0];
                       if (file) void handleImport(file);
+                      e.target.value = '';
                     }}
                   />
                 </label>
