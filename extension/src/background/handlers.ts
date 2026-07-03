@@ -229,7 +229,7 @@ export async function handleApiRequest(req: ApiRequest): Promise<unknown> {
     case 'getDataInfo':
       return {
         dataDir: 'chrome.storage.local',
-        syncHint: '扩展内数据以 YAML 格式保存在浏览器本地。可通过导出/导入 stars-data.yaml 与桌面版同步。',
+        syncHint: '扩展内数据以 YAML 格式保存在浏览器本地。可通过导出/导入 stars-data.yaml 备份；仓库中的 data/demo-data.yaml 为可提交的示例文件。',
       };
     case 'exportStarsData':
       return starsData.exportYaml();

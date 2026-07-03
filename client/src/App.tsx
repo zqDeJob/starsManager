@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Key, Moon, RefreshCw, Settings, Star, Sun, X } from 'lucide-react';
 import { useAppStore } from './store';
 import { api, isExtensionContext } from './api';
-import { getExtensionChrome } from './extension-bridge';
 import { applyTheme, type Theme } from './theme';
 import { GitHubStarsView } from './components/GitHubStarsView';
 import { GitHubListsView } from './components/GitHubListsView';
@@ -170,17 +169,11 @@ function SettingsModal({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [dataInfo, setDataInfo] = useState<{ dataDir: string; syncHint: string } | null>(null);
-  const [useLocalServer, setUseLocalServer] = useState(false);
   const isExtension = isExtensionContext();
 
   useEffect(() => {
     api.getDataInfo().then(setDataInfo).catch(() => {});
-    if (isExtension) {
-      void getExtensionChrome()?.storage.local.get('useLocalServer').then(result => {
-        setUseLocalServer(Boolean(result.useLocalServer));
-      });
-    }
-  }, [isExtension]);
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -225,29 +218,6 @@ function SettingsModal({
       await api.importStarsData(await file.text());
       await Promise.all([loadCategories(), loadDiyRepos()]);
       setMessage('已导入 stars-data.yaml，分类数据已刷新');
-    } catch (e) {
-      setMessage((e as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleLocalServerToggle = async (enabled: boolean) => {
-    const ext = getExtensionChrome();
-    if (!isExtension || !ext) return;
-    setSaving(true);
-    setMessage('');
-    try {
-      if (enabled) {
-        const granted = await ext.permissions.request({ origins: ['http://127.0.0.1:3001/*'] });
-        if (!granted) {
-          setMessage('需要授权访问本地服务 http://127.0.0.1:3001');
-          return;
-        }
-      }
-      await ext.storage.local.set({ useLocalServer: enabled });
-      setUseLocalServer(enabled);
-      setMessage(enabled ? '已切换为本地服务模式，请刷新页面' : '已切换为扩展内置存储，请刷新页面');
     } catch (e) {
       setMessage((e as Error).message);
     } finally {
@@ -310,21 +280,6 @@ function SettingsModal({
               {isExtension && (
                 <p className="mt-1 text-muted">存储位置：{dataInfo.dataDir}</p>
               )}
-            </section>
-          )}
-
-          {isExtension && (
-            <section>
-              <label className="text-xs font-medium text-muted mb-2 block">连接本地服务（可选）</label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={useLocalServer}
-                  onChange={e => void handleLocalServerToggle(e.target.checked)}
-                  disabled={saving}
-                />
-                使用 http://127.0.0.1:3001（需先运行 npm run dev）
-              </label>
             </section>
           )}
 

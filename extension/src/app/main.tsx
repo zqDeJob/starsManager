@@ -5,21 +5,9 @@ import { initTheme } from '@app/theme';
 import './tailwind.css';
 import App from '@app/App';
 import { createExtensionApi } from '../lib/extension-api';
-import { createLocalServerApi, getUseLocalServer, requestLocalServerPermission } from '../lib/local-server';
 
 async function bootstrap() {
-  const useLocal = await getUseLocalServer();
-  if (useLocal) {
-    const granted = await chrome.permissions.contains({ origins: ['http://127.0.0.1:3001/*'] })
-      || await requestLocalServerPermission();
-    if (granted) {
-      setApiClient(createLocalServerApi());
-    } else {
-      setApiClient(createExtensionApi());
-    }
-  } else {
-    setApiClient(createExtensionApi());
-  }
+  setApiClient(createExtensionApi());
 
   initTheme();
 
