@@ -1,5 +1,5 @@
 import YAML from 'yaml';
-import type { YamlStore } from '@stars-manager/core';
+import type { YamlStore } from '@github-stars-manager/core';
 
 const KEY_PREFIX = 'yaml:';
 

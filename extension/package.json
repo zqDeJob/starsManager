@@ -8,8 +8,8 @@
     "build": "tsc && vite build"
   },
   "dependencies": {
-    "@stars-manager/core": "1.0.0",
-    "@stars-manager/shared": "1.0.0",
+    "@github-stars-manager/core": "1.1.0",
+    "@github-stars-manager/shared": "1.1.0",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

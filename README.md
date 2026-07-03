@@ -1,4 +1,4 @@
-# Stars Manager
+# GitHub Stars Manager
 
 精简版 GitHub Stars 管理工具，以 **Chrome / Edge 浏览器扩展** 为主。
 

@@ -5,7 +5,7 @@ import {
   type DiyCategory,
   type DiyRepoEntry,
   type StarsDataFile,
-} from '@stars-manager/shared';
+} from '@github-stars-manager/shared';
 import type { YamlStore } from './yaml-store.js';
 
 export function createStarsDataService(store: YamlStore) {

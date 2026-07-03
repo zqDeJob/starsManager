@@ -1,4 +1,4 @@
-import { LOCAL_FILE, type LocalFile } from '@stars-manager/shared';
+import { LOCAL_FILE, type LocalFile } from '@github-stars-manager/shared';
 import type { YamlStore } from './yaml-store.js';
 
 export function createLocalSettingsService(store: YamlStore) {

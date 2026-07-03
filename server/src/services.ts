@@ -5,9 +5,9 @@ import {
   createStarsDataService,
   createGitHubCacheService,
   createLocalSettingsService,
-} from '@stars-manager/core';
-import { createFileYamlStore } from '@stars-manager/storage-node';
-import { GITHUB_CACHE_FILE, STARS_DATA_FILE, LOCAL_FILE } from '@stars-manager/shared';
+} from '@github-stars-manager/core';
+import { createFileYamlStore } from '@github-stars-manager/storage-node';
+import { GITHUB_CACHE_FILE, STARS_DATA_FILE, LOCAL_FILE } from '@github-stars-manager/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

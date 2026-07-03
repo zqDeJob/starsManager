@@ -4,7 +4,7 @@ import {
   type CachedRepo,
   type CachedStarList,
   type GitHubCacheFile,
-} from '@stars-manager/shared';
+} from '@github-stars-manager/shared';
 import type { YamlStore } from './yaml-store.js';
 
 export function createGitHubCacheService(store: YamlStore) {

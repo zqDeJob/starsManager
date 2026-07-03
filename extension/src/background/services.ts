@@ -2,7 +2,7 @@ import {
   createStarsDataService,
   createGitHubCacheService,
   createLocalSettingsService,
-} from '@stars-manager/core';
+} from '@github-stars-manager/core';
 import { createChromeYamlStore } from '../storage/chrome-yaml-store.js';
 
 const store = createChromeYamlStore();

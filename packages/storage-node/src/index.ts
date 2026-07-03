@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import YAML from 'yaml';
-import type { SyncYamlStore } from '@stars-manager/core';
+import type { SyncYamlStore } from '@github-stars-manager/core';
 
 export function createFileYamlStore(dataDir: string): SyncYamlStore & {
   ensureDataDir(): string;

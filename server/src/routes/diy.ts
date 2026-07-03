@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { randomUUID } from 'crypto';
 import { starsData, githubCache } from '../services.js';
-import type { CachedRepo } from '@stars-manager/core';
-import { buildGitHubListsByRepoNodeId, repoMatchesSearchQuery } from '@stars-manager/core';
+import type { CachedRepo } from '@github-stars-manager/core';
+import { buildGitHubListsByRepoNodeId, repoMatchesSearchQuery } from '@github-stars-manager/core';
 
 export const diyRouter = Router();
 

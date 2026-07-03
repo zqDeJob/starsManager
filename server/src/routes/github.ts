@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { localSettings, githubCache } from '../services.js';
-import { fetchAllStars, fetchStarLists, verifyToken } from '@stars-manager/shared';
-import type { CachedRepo, CachedStarList } from '@stars-manager/core';
+import { fetchAllStars, fetchStarLists, verifyToken } from '@github-stars-manager/shared';
+import type { CachedRepo, CachedStarList } from '@github-stars-manager/core';
 
 export const githubRouter = Router();
 

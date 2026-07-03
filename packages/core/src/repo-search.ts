@@ -1,4 +1,4 @@
-import type { CachedStarList } from '@stars-manager/shared';
+import type { CachedStarList } from '@github-stars-manager/shared';
 
 export function buildGitHubListsByRepoNodeId(starLists: CachedStarList[]): Map<string, string[]> {
   const map = new Map<string, string[]>();

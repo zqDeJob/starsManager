@@ -1,6 +1,6 @@
 export type Theme = 'light' | 'dark';
 
-const KEY = 'stars-manager-theme';
+const KEY = 'github-stars-manager-theme';
 
 export function getStoredTheme(): Theme {
   const stored = localStorage.getItem(KEY);

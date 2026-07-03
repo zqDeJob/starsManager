@@ -1,6 +1,6 @@
-import type { CachedRepo, CachedStarList } from '@stars-manager/core';
-import { buildGitHubListsByRepoNodeId, repoMatchesSearchQuery } from '@stars-manager/core';
-import { fetchAllStars, fetchStarLists, verifyToken } from '@stars-manager/shared';
+import type { CachedRepo, CachedStarList } from '@github-stars-manager/core';
+import { buildGitHubListsByRepoNodeId, repoMatchesSearchQuery } from '@github-stars-manager/core';
+import { fetchAllStars, fetchStarLists, verifyToken } from '@github-stars-manager/shared';
 import { githubCache, localSettings, starsData } from './services.js';
 
 export type ApiRequest =

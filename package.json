@@ -1,14 +1,14 @@
 {
-  "name": "stars-manager-for-me",
+  "name": "github-stars-manager",
   "version": "1.1.0",
   "private": true,
   "description": "GitHub Stars 管理浏览器扩展",
-  "author": "Stars Manager",
+  "author": "GitHub Stars Manager",
   "scripts": {
     "dev": "npm run dev:extension",
     "dev:extension": "npm run build:packages && npm run dev --workspace=extension",
     "dev:client": "npm run dev --workspace=client",
-    "build:packages": "npm run build --workspace=@stars-manager/shared && npm run build --workspace=@stars-manager/core && npm run build --workspace=@stars-manager/storage-node",
+    "build:packages": "npm run build --workspace=@github-stars-manager/shared && npm run build --workspace=@github-stars-manager/core && npm run build --workspace=@github-stars-manager/storage-node",
     "build": "npm run build:extension",
     "build:extension": "npm run build:packages && npm run build --workspace=extension",
     "verify:extension": "node scripts/assert-no-extension-local-server.cjs"
